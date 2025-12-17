@@ -4,6 +4,7 @@ namespace HospitalManagementSystem
 {
     public delegate double BillingStrategy(double amount);
 
+   
     public abstract class Patient
     {
         public int PatientId { get; }
@@ -20,10 +21,13 @@ namespace HospitalManagementSystem
         public abstract double CalculateBill();
     }
 
+    
     public class GeneralPatient : Patient
     {
         public GeneralPatient(int id, string name)
-            : base(id, name, 2000) { }
+            : base(id, name, 2000)
+        {
+        }
 
         public override double CalculateBill()
         {
@@ -31,10 +35,13 @@ namespace HospitalManagementSystem
         }
     }
 
+  
     public class EmergencyPatient : Patient
     {
         public EmergencyPatient(int id, string name)
-            : base(id, name, 5000) { }
+            : base(id, name, 5000)
+        {
+        }
 
         public override double CalculateBill()
         {
@@ -42,10 +49,13 @@ namespace HospitalManagementSystem
         }
     }
 
+   
     public class InsurancePatient : Patient
     {
         public InsurancePatient(int id, string name)
-            : base(id, name, 3000) { }
+            : base(id, name, 3000)
+        {
+        }
 
         public override double CalculateBill()
         {
@@ -53,19 +63,21 @@ namespace HospitalManagementSystem
         }
     }
 
+   
     public class HospitalNotifier
     {
         public event Action<string>? Notify;
 
-        public void Trigger(string message)
+        public void TriggerNotification(string message)
         {
             Notify?.Invoke(message);
         }
     }
 
+   
     public class BillingService
     {
-        public static double ApplyStrategy(double amount, BillingStrategy strategy)
+        public static double ApplyBilling(double amount, BillingStrategy strategy)
         {
             return strategy(amount);
         }
@@ -87,20 +99,20 @@ namespace HospitalManagementSystem
         {
             HospitalNotifier notifier = new HospitalNotifier();
 
-            notifier.Notify += msg => Console.WriteLine("ADMIN ALERT: " + msg);
-            notifier.Notify += msg => Console.WriteLine("BILLING DEPT: " + msg);
-            notifier.Notify += msg => Console.WriteLine("MEDICAL TEAM: " + msg);
+            notifier.Notify += message => Console.WriteLine("ADMIN ALERT: " + message);
+            notifier.Notify += message => Console.WriteLine("BILLING DEPARTMENT: " + message);
+            notifier.Notify += message => Console.WriteLine("MEDICAL TEAM: " + message);
 
             Console.WriteLine("Enter Patient ID:");
-            int id = int.Parse(Console.ReadLine()!);
+            int patientId = int.Parse(Console.ReadLine()!);
 
             Console.WriteLine("Enter Patient Name:");
-            string name = Console.ReadLine()!;
+            string patientName = Console.ReadLine()!;
 
-            Console.WriteLine("Select Patient Type");
-            Console.WriteLine("1. General");
-            Console.WriteLine("2. Emergency");
-            Console.WriteLine("3. Insurance");
+            Console.WriteLine("\nSelect Patient Type:");
+            Console.WriteLine("1. General Patient");
+            Console.WriteLine("2. Emergency Patient");
+            Console.WriteLine("3. Insurance Patient");
 
             int choice = int.Parse(Console.ReadLine()!);
 
@@ -110,36 +122,39 @@ namespace HospitalManagementSystem
             switch (choice)
             {
                 case 1:
-                    patient = new GeneralPatient(id, name);
+                    patient = new GeneralPatient(patientId, patientName);
                     strategy = BillingService.NormalBilling;
                     break;
 
                 case 2:
-                    patient = new EmergencyPatient(id, name);
+                    patient = new EmergencyPatient(patientId, patientName);
                     strategy = BillingService.NormalBilling;
                     break;
 
                 case 3:
-                    patient = new InsurancePatient(id, name);
+                    patient = new InsurancePatient(patientId, patientName);
                     strategy = BillingService.InsuranceDiscount;
                     break;
 
                 default:
-                    Console.WriteLine("Invalid option");
+                    Console.WriteLine("Invalid patient type selected.");
                     return;
             }
 
             double baseBill = patient.CalculateBill();
-            double finalBill = BillingService.ApplyStrategy(baseBill, strategy);
+            double finalBill = BillingService.ApplyBilling(baseBill, strategy);
 
             Console.WriteLine("\n----- BILL DETAILS -----");
-            Console.WriteLine($"Patient Name: {patient.Name}");
-            Console.WriteLine($"Patient Type: {patient.GetType().Name}");
-            Console.WriteLine($"Final Bill Amount: ₹{finalBill}");
+            Console.WriteLine("Patient ID   : " + patient.PatientId);
+            Console.WriteLine("Patient Name : " + patient.Name);
+            Console.WriteLine("Patient Type : " + patient.GetType().Name);
+            Console.WriteLine("Final Bill   : ₹" + finalBill);
 
-            notifier.Trigger($"Patient {patient.Name} admitted with bill ₹{finalBill}");
+            notifier.TriggerNotification(
+                $"Patient {patient.Name} admitted. Final bill amount ₹{finalBill}"
+            );
 
-            Console.WriteLine("\nProcess Completed Successfully");
+            Console.WriteLine("\nProcess Completed Successfully.");
         }
     }
 }
